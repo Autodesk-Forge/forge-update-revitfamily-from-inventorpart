@@ -25,11 +25,19 @@ using System.Net;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Hangfire;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Inventor2Revit.Controllers
 {
     public class WebhookController : ControllerBase
     {
+
+        private IHostingEnvironment _env;
+        public WebhookController(IHostingEnvironment env)
+        {
+            _env = env;
+        }
+
         /// <summary>
         /// Credentials on this request
         /// </summary>
@@ -37,7 +45,13 @@ namespace Inventor2Revit.Controllers
 
         // with the api/forge/callback/webhook endpoint
         // e.g. local testing with http://1234.ngrok.io/api/forge/callback/webhook
-        public string CallbackUrl { get { return Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_URL"); } }
+        public string CallbackUrl
+        {
+            get
+            {
+                return Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_HOST") + "/api/forge/callback/webhook";
+            }
+        }
 
         private string ExtractFolderIdFromHref(string href)
         {
@@ -140,7 +154,7 @@ namespace Inventor2Revit.Controllers
                 */
 
                 // use Hangfire to schedule a job
-                BackgroundJob.Schedule(() => ExtractMetadata(userId, projectId, versionId), TimeSpan.FromSeconds(30));
+                BackgroundJob.Schedule(() => StartInventor(userId, projectId, versionId, _env.ContentRootPath), TimeSpan.FromSeconds(1));
             }
             catch { }
 
@@ -148,28 +162,12 @@ namespace Inventor2Revit.Controllers
             return Ok();
         }
 
-        public async static Task ExtractMetadata(string userId, string projectId, string versionId)
+        public async static Task StartInventor(string userId, string projectId, string versionId, string contentRootPath)
         {
-            // this operation may take a moment
-            Credentials credentials = await Credentials.FromDatabaseAsync(userId);
-
-            // at this point we have:
-            // projectId & versionId
-            // valid access token
-
-            // ready to access the files! let's do a quick test
-            // as we're tracking the modified event, the manifest should be there...
             try
             {
-                DerivativesApi derivativeApi = new DerivativesApi();
-                derivativeApi.Configuration.AccessToken = credentials.TokenInternal;
-                dynamic manifest = await derivativeApi.GetManifestAsync(Base64Encode(versionId));
-
-                if (manifest.status == "inprogress") throw new Exception("Translating..."); // force run it again
-
-                // now we have the metadata, can do something, like send email or generate a report...
-                // for this sample, just a simple console write line
-                Console.WriteLine(manifest);
+                DesignAutomation4Inventor daInventor = new DesignAutomation4Inventor();
+                await daInventor.StartInventorIPT2SAT(userId, projectId, versionId, contentRootPath);
             }
             catch (Exception e)
             {
