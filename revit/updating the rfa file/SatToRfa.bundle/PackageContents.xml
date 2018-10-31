@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ApplicationPackage>
+  <Components Description="Updates the Family file">
+    <RuntimeRequirements OS="Win64" 
+                         Platform="Revit" 
+                         SeriesMin="R2018" 
+                         SeriesMax="R2018" />
+    <ComponentEntry AppName="updateRFAfile" 
+                    Version="1.0.0" 
+                    ModuleName="./Contents/updateRFA.addin" 
+                    AppDescription="updateRFAfile" 
+                    LoadOnCommandInvocation="False" 
+                    LoadOnRevitStartup="True" />
+  </Components>
+</ApplicationPackage>

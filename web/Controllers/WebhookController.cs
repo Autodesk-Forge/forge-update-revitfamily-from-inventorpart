@@ -138,9 +138,12 @@ namespace Inventor2Revit.Controllers
                 string userId = body["hook"]["createdBy"].ToString();
                 string projectId = body["hook"]["hookAttribute"]["projectId"].ToString();
                 string versionId = body["resourceUrn"].ToString();
+                string extension = body["payload"]["ext"].ToString();
 
                 // do you want to filter events??
                 if (eventType != "dm.version.added") return Ok();
+
+                if (extension!= "ipt") return Ok();
 
                 // your webhook should return immediately!
                 // so can start a second thread (not good) or use a queueing system (e.g. hangfire)

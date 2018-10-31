@@ -50,14 +50,6 @@ namespace Inventor2Revit.Controllers
             }
         }
 
-        public static string S3BucketName
-        {
-            get
-            {
-                return "inventor2revit" + NickName.ToLower();
-            }
-        }
-
         public async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
         {
             //List<string> apps = await da.GetAppBundles(nickName);
@@ -175,12 +167,12 @@ namespace Inventor2Revit.Controllers
         {
             IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
 
-            if (!await client.DoesS3BucketExistAsync(S3BucketName))
-                await client.EnsureBucketExistsAsync(S3BucketName);
+            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
+                await client.EnsureBucketExistsAsync(Utils.S3BucketName);
 
             Dictionary<string, object> props = new Dictionary<string, object>();
             props.Add("Verb", "PUT");
-            Uri uploadToS3 = new Uri(client.GeneratePreSignedURL(S3BucketName, resultFilename, DateTime.Now.AddMinutes(10), props));
+            Uri uploadToS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, resultFilename, DateTime.Now.AddMinutes(10), props));
 
             return new JObject
             {

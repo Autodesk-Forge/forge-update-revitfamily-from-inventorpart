@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="DBApplication">
+    <Name>Updating the project file</Name>
+    <Assembly>.\UpdateFamily.dll</Assembly>
+    <AddInId>d7fe1983-8f10-4983-98e2-c3cc332fc978</AddInId>
+    <FullClassName>UpdateFamily.UpdateFamilyApp</FullClassName>
+    <Description>"Updates the family file"</Description>
+    <VendorId>FPD</VendorId>
+    <VendorDescription>
+    </VendorDescription>
+  </AddIn>
+</RevitAddIns>
