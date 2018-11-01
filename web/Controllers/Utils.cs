@@ -37,12 +37,19 @@ namespace Inventor2Revit.Controllers
 {
     public static class Utils
     {
+        public static string NickName
+        {
+            get
+            {
+                return Credentials.GetAppSetting("FORGE_CLIENT_ID");
+            }
+        }
 
         public static string S3BucketName
         {
             get
             {
-                return "inventor2revit" + Credentials.GetAppSetting("FORGE_CLIENT_ID").ToLower();
+                return "inventor2revit" + NickName.ToLower();
             }
         }
 

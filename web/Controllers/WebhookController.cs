@@ -143,7 +143,7 @@ namespace Inventor2Revit.Controllers
                 // do you want to filter events??
                 if (eventType != "dm.version.added") return Ok();
 
-                if (extension!= "ipt") return Ok();
+                if (extension != "ipt") return Ok();
 
                 // your webhook should return immediately!
                 // so can start a second thread (not good) or use a queueing system (e.g. hangfire)
@@ -177,17 +177,6 @@ namespace Inventor2Revit.Controllers
                 Console.WriteLine(e);
                 throw; // this should force Hangfire to try again 
             }
-        }
-
-        /// <summary>
-        /// Base64 encode a string (source: http://stackoverflow.com/a/11743162)
-        /// </summary>
-        /// <param name="plainText"></param>
-        /// <returns></returns>
-        public static string Base64Encode(string plainText)
-        {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
         }
     }
 }

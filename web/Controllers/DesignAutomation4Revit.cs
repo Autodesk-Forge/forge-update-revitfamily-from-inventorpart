@@ -43,16 +43,7 @@ namespace Inventor2Revit.Controllers
         private const string ALIAS = "v1";
         private const string RFA_TEMPLATE = "MetricGenericModel.rft";
 
-
-        public static string NickName
-        {
-            get
-            {
-                return Credentials.GetAppSetting("FORGE_CLIENT_ID");
-            }
-        }
-
-        public async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
+        private async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
         {
             //List<string> apps = await da.GetAppBundles(nickName);
             AppBundlesApi appBundlesApi = new AppBundlesApi();
@@ -66,7 +57,7 @@ namespace Inventor2Revit.Controllers
             bool existAppBundle = false;
             foreach (string appName in appBundles.Data)
             {
-                if (appName.Contains(string.Format("{0}.{1}+{2}", NickName, APPNAME, ALIAS)))
+                if (appName.Contains(string.Format("{0}.{1}+{2}", Utils.NickName, APPNAME, ALIAS)))
                 {
                     existAppBundle = true;
                     continue;
@@ -100,7 +91,7 @@ namespace Inventor2Revit.Controllers
             }
         }
 
-        public async Task EnsureActivity(string appAccessToken)
+        private async Task EnsureActivity(string appAccessToken)
         {
             ActivitiesApi activitiesApi = new ActivitiesApi();
             activitiesApi.Configuration.AccessToken = appAccessToken;
@@ -109,7 +100,7 @@ namespace Inventor2Revit.Controllers
             bool existActivity = false;
             foreach (string activity in activities.Data)
             {
-                if (activity.Contains(string.Format("{0}.{1}+{2}", NickName, ACTIVITY_NAME, ALIAS)))
+                if (activity.Contains(string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS)))
                 {
                     existActivity = true;
                     continue;
@@ -133,7 +124,7 @@ namespace Inventor2Revit.Controllers
                     { "result", result }
                   },
                   "Autodesk.Revit+2019",
-                  new List<string>() { string.Format("{0}.{1}+{2}", NickName, APPNAME, ALIAS) },
+                  new List<string>() { string.Format("{0}.{1}+{2}", Utils.NickName, APPNAME, ALIAS) },
                   null,
                   ACTIVITY_NAME,
                   null,
@@ -146,7 +137,7 @@ namespace Inventor2Revit.Controllers
             }
         }
 
-        public async Task EnsureTemplateExists(string contentRootPath)
+        private async Task EnsureTemplateExists(string contentRootPath)
         {
             IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
             var keys = await client.GetAllObjectKeysAsync(Utils.S3BucketName, null, null);
@@ -291,10 +282,10 @@ namespace Inventor2Revit.Controllers
             TwoLeggedApi oauth = new TwoLeggedApi();
             string appAccessToken = (await oauth.AuthenticateAsync(Credentials.GetAppSetting("FORGE_CLIENT_ID"), Credentials.GetAppSetting("FORGE_CLIENT_SECRET"), oAuthConstants.CLIENT_CREDENTIALS, new Scope[] { Scope.CodeAll })).ToObject<Bearer>().AccessToken;
 
-            // uncomment these lines to clear all appbundles & activities under your account
-            ForgeAppsApi forgeAppApi = new ForgeAppsApi();
-            forgeAppApi.Configuration.AccessToken = appAccessToken;
-            await forgeAppApi.ForgeAppsDeleteUserAsync("me");
+            // uncomment these lines to clear all appbundles & activities under your account (for testing)
+            //ForgeAppsApi forgeAppApi = new ForgeAppsApi();
+            //forgeAppApi.Configuration.AccessToken = appAccessToken;
+            //await forgeAppApi.ForgeAppsDeleteUserAsync("me");
 
             Credentials credentials = await Credentials.FromDatabaseAsync(userId);
 
@@ -315,7 +306,7 @@ namespace Inventor2Revit.Controllers
             {
                 WorkItem workItemSpec = new WorkItem(
                   null,
-                  string.Format("{0}.{1}+{2}", NickName, ACTIVITY_NAME, ALIAS),
+                  string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS),
                   new Dictionary<string, JObject>()
                   {
                   { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, revitFileVersionId) },
