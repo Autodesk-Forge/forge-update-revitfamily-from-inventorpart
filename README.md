@@ -1,19 +1,19 @@
 # design.automation-csharp-inventor2revit
 
-![Platforms](https://img.shields.io/badge/platform-Windows|MacOS-lightgray.svg)
+![Platforms](https://img.shields.io/badge/Web-Windows|MacOS-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET%20Core-2.1-blue.svg)
-[![License](http://img.shields.io/:license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
-
 [![oAuth2](https://img.shields.io/badge/oAuth2-v1-green.svg)](http://developer.autodesk.com/)
 [![Data-Management](https://img.shields.io/badge/Data%20Management-v1-green.svg)](http://developer.autodesk.com/)
 [![Webhook](https://img.shields.io/badge/Webhook-v1-green.svg)](http://developer.autodesk.com/)
-
 [![Design-Automation](https://img.shields.io/badge/Design%20Automation-v3-green.svg)](http://developer.autodesk.com/)
-[![Inventor](https://img.shields.io/badge/Inventor-2019-orange.svg)](http://developer.autodesk.com/)
-[![Revit](https://img.shields.io/badge/Revit-2019-blue.svg)](http://developer.autodesk.com/)
 
+![Platforms](https://img.shields.io/badge/Plugins-Windows-lightgray.svg)
+![.NET](https://img.shields.io/badge/.NET%20Framework-4.7-blue.svg)
+[![Inventor](https://img.shields.io/badge/Inventor-2019-orange.svg)](http://developer.autodesk.com/)
+[![Revit](https://img.shields.io/badge/Revit-2019-lightblue.svg)](http://developer.autodesk.com/)
 
 ![Advanced](https://img.shields.io/badge/Level-Advanced-red.svg)
+[![License](http://img.shields.io/:license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 # Description
 
@@ -75,6 +75,8 @@ There are several tools to view your database, [Robo 3T](https://robomongo.org/)
 
 **AWS Account**
 
+Create an AWS Account, allow API Access, the `access key` and `secret key` will be used on this sample.
+
 **Environment variables**
 
 At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Secret and callback URL. Also define the `ASPNETCORE_URLS` variable. The end result should be as shown below:
@@ -86,7 +88,7 @@ At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Se
     "FORGE_CLIENT_ID": "your id here",
     "FORGE_CLIENT_SECRET": "your secret here",
     "FORGE_CALLBACK_URL": "http://localhost:3000/api/forge/callback/oauth",
-    "OAUTH_DATABASE": "mongodb://<dbuser>:<dbpassword>@ds<number>.mlab.com:<port>/inventor2revit"
+    "OAUTH_DATABASE": "mongodb://<dbuser>:<dbpassword>@ds<number>.mlab.com:<port>/inventor2revit",
     "FORGE_WEBHOOK_CALLBACK_HOST": "http://1234.ngrok.io",
     "AWSAccessKey": "ABCD1234",
     "AWSSecretKey": "xyz6789"
@@ -95,7 +97,7 @@ At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Se
 
 Before running the sample, it's recomended to already upload a RVT project and a IPT file into a BIM 360 Folder. 
 
-A compiled version of the `Inventor` and `Revit` plugins (.bundles) are included on the `web` module folder. Any changes on these plugins will require to create a new .bundle as a .zip file. These file names are hardcoded. 
+A compiled version of the `Inventor` and `Revit` plugins (.bundles) are included on the `web` module folder. Any changes on these plugins will require to create a new .bundle as a .zip file. These file names are hardcoded.
 
 Open `http://localhost:3000` to start the app, select a folder to start monitoring. Upload a new version of the `IPT` file.
 
@@ -106,12 +108,17 @@ As file names are hardcoded, this sample is not suitable to be deployed.
 
 # Further Reading
 
-Documentation:
+Forge Documentation:
 
 - [BIM 360 API](https://developer.autodesk.com/en/docs/bim360/v1/overview/) and [App Provisioning](https://forge.autodesk.com/blog/bim-360-docs-provisioning-forge-apps)
 - [Data Management API](https://developer.autodesk.com/en/docs/data/v2/overview/)
 - [Webhook](https://forge.autodesk.com/en/docs/webhooks/v1)
 - [Design Automation](https://forge.autodesk.com/en/docs/design-automation/v3/developers_guide/overview/)
+
+Desktop APIs:
+
+- [Inventor](https://knowledge.autodesk.com/support/inventor-products/learn-explore/caas/simplecontent/content/my-first-inventor-plug-overview.html)
+- [Revit](https://knowledge.autodesk.com/support/revit-products/learn-explore/caas/simplecontent/content/my-first-revit-plug-overview.html)
 
 Other APIs:
 
