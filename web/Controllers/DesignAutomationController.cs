@@ -65,7 +65,8 @@ namespace Inventor2Revit.Controllers
 
         public async Task StartRevit(string userId, string projectId, string versionId, string contentRootPath)
         {
-            IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
+            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
+            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
 
             string resultFilename = versionId + ".sat";
 

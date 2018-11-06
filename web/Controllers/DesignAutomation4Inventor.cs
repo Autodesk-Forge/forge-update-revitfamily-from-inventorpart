@@ -157,7 +157,8 @@ namespace Inventor2Revit.Controllers
 
         private async Task<JObject> BuildUploadURL(string resultFilename)
         {
-            IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
+            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
+            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
 
             if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
                 await client.EnsureBucketExistsAsync(Utils.S3BucketName);

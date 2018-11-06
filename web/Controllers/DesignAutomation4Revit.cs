@@ -139,7 +139,8 @@ namespace Inventor2Revit.Controllers
 
         private async Task EnsureTemplateExists(string contentRootPath)
         {
-            IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
+            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
+            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
             var keys = await client.GetAllObjectKeysAsync(Utils.S3BucketName, null, null);
             if (keys.Contains(RFA_TEMPLATE)) return;
 
@@ -237,7 +238,8 @@ namespace Inventor2Revit.Controllers
 
         private async Task<JObject> BuildS3UploadURL(string resultFilename)
         {
-            IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
+            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
+            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
 
             if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
                 await client.EnsureBucketExistsAsync(Utils.S3BucketName);
@@ -255,7 +257,8 @@ namespace Inventor2Revit.Controllers
 
         private async Task<JObject> BuildS3DownloadURL(string fileName)
         {
-            IAmazonS3 client = new AmazonS3Client(Amazon.RegionEndpoint.USWest2);
+            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
+            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
 
             if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
             {

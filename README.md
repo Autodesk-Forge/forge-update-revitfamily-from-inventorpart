@@ -23,7 +23,7 @@ This sample is based on [this Webhook sample](https://github.com/Autodesk-Forge/
 
 ## Thumbnail
 
-![](thumbnail.png)
+![thumbnail](thumbnail.png)
 
 ## Demonstration
 
@@ -39,8 +39,8 @@ There a few moving parts on this sample, [this video](https://www.youtube.com/wa
 4. **ngrok**: Routing tool, [download here](https://ngrok.com/)
 5. **MongoDB**: noSQL database, [learn more](https://www.mongodb.com/). Or use a online version via [mLab](https://mlab.com/) (this is used on this sample)
 6. **AWS Account**: S3 buckets are used to store temporary files
-6. **Inventor** 2019: required to compile changes into the plugin
-7. **Revit** 2019: required to compile changes into the plugin
+7. **Inventor** 2019: required to compile changes into the plugin
+8. **Revit** 2019: required to compile changes into the plugin
 
 ## Running locally
 
@@ -90,8 +90,8 @@ At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Se
     "FORGE_CALLBACK_URL": "http://localhost:3000/api/forge/callback/oauth",
     "OAUTH_DATABASE": "mongodb://<dbuser>:<dbpassword>@ds<number>.mlab.com:<port>/inventor2revit",
     "FORGE_WEBHOOK_CALLBACK_HOST": "http://1234.ngrok.io",
-    "AWSAccessKey": "ABCD1234",
-    "AWSSecretKey": "xyz6789"
+    "AWS_ACCESS_KEY": "your AWS access key here",
+    "AWS_SECRET_KEY": "your AWS secret key here"
 },
 ```
 
