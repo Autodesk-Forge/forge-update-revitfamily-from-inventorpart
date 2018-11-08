@@ -39,8 +39,10 @@ namespace Inventor2Revit.Controllers
     {
         private const string APPNAME = "UpdateFamilyApp";
         private const string APPBUNBLENAME = "UpdateFamilyAppBundle.zip";
-        private const string ACTIVITY_NAME = "UpdateFamilyActivity";
         private const string ALIAS = "v1";
+        private const string ACTIVITY_NAME = "UpdateFamilyActivity";
+        private string ACTIVITY_NAME_FULL = string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS);
+        
         private const string RFA_TEMPLATE = "MetricGenericModel.rft";
 
         private async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
@@ -100,7 +102,7 @@ namespace Inventor2Revit.Controllers
             bool existActivity = false;
             foreach (string activity in activities.Data)
             {
-                if (activity.Contains(string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS)))
+                if (activity.Contains(ACTIVITY_NAME_FULL))
                 {
                     existActivity = true;
                     continue;
@@ -154,7 +156,7 @@ namespace Inventor2Revit.Controllers
             VersionsApi versionApi = new VersionsApi();
             versionApi.Configuration.AccessToken = userAccessToken;
             dynamic version = await versionApi.GetVersionAsync(projectId, versionId);
-            dynamic versionItem = await versionApi.GetVersionItemAsync(projectId, versionId);
+            //dynamic versionItem = await versionApi.GetVersionItemAsync(projectId, versionId);
 
             string[] versionItemParams = ((string)version.data.relationships.storage.data.id).Split('/');
             string[] bucketKeyParams = versionItemParams[versionItemParams.Length - 2].Split(':');
@@ -280,6 +282,45 @@ namespace Inventor2Revit.Controllers
             };
         }
 
+        public async Task<string> GetFolderId(string projectId, string versionId, string accessToken)
+        {
+            VersionsApi versionApi = new VersionsApi();
+            versionApi.Configuration.AccessToken = accessToken;
+            dynamic versionItem = await versionApi.GetVersionItemAsync(projectId, versionId);
+            string itemId = versionItem.data.id;  
+
+            ItemsApi itemApi = new ItemsApi();
+            itemApi.Configuration.AccessToken = accessToken;
+            dynamic item = await itemApi.GetItemAsync(projectId, itemId);
+            string folderId = item.data.relationships.parent.data.id;;
+
+            return folderId;
+        }
+
+        public async Task<string> GetRevitFileVersionId(string projectId, string versionId, string accessToken)
+        {
+            string folderId = await GetFolderId(projectId, versionId, accessToken);
+
+            FoldersApi folderApi = new FoldersApi();
+            folderApi.Configuration.AccessToken = accessToken;
+            dynamic contents = await folderApi.SearchFolderContentsAsync(
+                projectId, folderId, 0, 
+                new List<string>(new string[] { "rvt" }));
+            
+            if (contents.Data.data.Count == 0) 
+            {
+                throw new Exception("No Revit file found in folder!");
+            }
+
+            if (contents.Data.data.Count > 1) 
+            {
+                throw new Exception("More than one Revit file found in folder!");
+            }
+
+            return contents.Data.data[0].id;
+        }
+
+
         public async Task StartUploadFamily(string userId, string projectId, string versionId, string contentRootPath)
         {
             TwoLeggedApi oauth = new TwoLeggedApi();
@@ -292,10 +333,12 @@ namespace Inventor2Revit.Controllers
 
             Credentials credentials = await Credentials.FromDatabaseAsync(userId);
 
-            ItemsApi itemApi = new ItemsApi();
-            itemApi.Configuration.AccessToken = credentials.TokenInternal;
-            dynamic item = await itemApi.GetItemAsync(projectId, "urn:adsk.wipprod:dm.lineage:5-CLC6KUQr-lr06gXPyGhw");
-            string revitFileVersionId = item.data.relationships.tip.data.id; // last version
+            //ItemsApi itemApi = new ItemsApi();
+            //itemApi.Configuration.AccessToken = credentials.TokenInternal;
+            //string revitFileItemId = await GetRevitFileItemId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
+            //dynamic item = await itemApi.GetItemAsync(projectId, "urn:adsk.wipprod:dm.lineage:5-CLC6KUQr-lr06gXPyGhw");
+            //string revitFileVersionId = item.data.relationships.tip.data.id; // last version
+            string revitFileVersionId = await GetRevitFileVersionId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
 
             await EnsureAppBundle(appAccessToken, contentRootPath);
             await EnsureActivity(appAccessToken);
@@ -309,7 +352,7 @@ namespace Inventor2Revit.Controllers
             {
                 WorkItem workItemSpec = new WorkItem(
                   null,
-                  string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS),
+                  ACTIVITY_NAME_FULL,
                   new Dictionary<string, JObject>()
                   {
                   { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, revitFileVersionId) },

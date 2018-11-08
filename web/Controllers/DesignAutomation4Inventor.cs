@@ -39,8 +39,10 @@ namespace Inventor2Revit.Controllers
     {
         private const string APPNAME = "IptToSatApp";
         private const string APPBUNBLENAME = "IptToSatAppBundle.zip";
-        private const string ACTIVITY_NAME = "IptToSatActivity";
         private const string ALIAS = "v1";
+        private const string ACTIVITY_NAME = "IptToSatActivity";
+        private string ACTIVITY_NAME_FULL = string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS);
+        
 
         public async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
         {
@@ -99,7 +101,7 @@ namespace Inventor2Revit.Controllers
             bool existActivity = false;
             foreach (string activity in activities.Data)
             {
-                if (activity.Contains(string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS)))
+                if (activity.Contains(ACTIVITY_NAME_FULL))
                 {
                     existActivity = true;
                     continue;
@@ -193,7 +195,7 @@ namespace Inventor2Revit.Controllers
             string callbackUrl = string.Format("{0}/api/forge/callback/designautomation/inventor/{1}/{2}/{3}", Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_HOST"), userId, projectId, versionId.Base64Encode());
             WorkItem workItemSpec = new WorkItem(
               null,
-              string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS),
+              ACTIVITY_NAME_FULL,
               new Dictionary<string, JObject>()
               {
                   { "InventorDoc", await BuildDownloadURL(credentials.TokenInternal, projectId, versionId) },
