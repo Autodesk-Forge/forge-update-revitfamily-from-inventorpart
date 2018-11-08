@@ -297,7 +297,7 @@ namespace Inventor2Revit.Controllers
             return folderId;
         }
 
-        public async Task<string> GetRevitFileVersionId(string projectId, string versionId, string accessToken)
+        public async Task<List<string>> GetRevitFileVersionId(string projectId, string versionId, string accessToken)
         {
             string folderId = await GetFolderId(projectId, versionId, accessToken);
 
@@ -307,17 +307,18 @@ namespace Inventor2Revit.Controllers
                 projectId, folderId, 0,
                 new List<string>(new string[] { "rvt" }));
 
-            if (contents.Data.data.Count == 0)
+            if (contents.Data.included.Count == 0)
             {
                 throw new Exception("No Revit file found in folder!");
             }
 
-            if (contents.Data.data.Count > 1)
-            {
-                throw new Exception("More than one Revit file found in folder!");
-            }
+            List<string> versionIds = new List<string>();
+            foreach (KeyValuePair<string, dynamic> includedItem in new DynamicDictionaryItems(contents.Data.included))
+                if (includedItem.Value.attributes.hidden == false)
+                    if (includedItem.Value.relationships.tip.data.type == "versions")
+                        versionIds.Add(includedItem.Value.relationships.tip.data.id);
 
-            return contents.Data.data[0].id;
+            return versionIds;
         }
 
 
@@ -338,40 +339,44 @@ namespace Inventor2Revit.Controllers
             //string revitFileItemId = await GetRevitFileItemId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
             //dynamic item = await itemApi.GetItemAsync(projectId, "urn:adsk.wipprod:dm.lineage:5-CLC6KUQr-lr06gXPyGhw");
             //string revitFileVersionId = item.data.relationships.tip.data.id; // last version
-            string revitFileVersionId = await GetRevitFileVersionId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
+            List<string> rvtFilesOnFolder = await GetRevitFileVersionId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
 
             await EnsureAppBundle(appAccessToken, contentRootPath);
             await EnsureActivity(appAccessToken);
             await EnsureTemplateExists(contentRootPath);
 
-            StorageInfo info = await PreWorkNewVersion(credentials.TokenInternal, projectId, revitFileVersionId);
-            string satFileName = versionId + ".sat";
-            string callbackUrl = string.Format("{0}/api/forge/callback/designautomation/revit/{1}/{2}/{3}/{4}/{5}", Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_HOST"), userId, projectId, info.itemId.Base64Encode(), info.storageId.Base64Encode(), info.fileName.Base64Encode());
-
-            try
+            // at this point we're triggering one Design Automation workItem for each RVT file on the folder,
+            // which can be expensive, so better to filter out... for this sample, let's just do it
+            foreach (string fileInFolder in rvtFilesOnFolder)
             {
-                WorkItem workItemSpec = new WorkItem(
-                  null,
-                  ACTIVITY_NAME_FULL,
-                  new Dictionary<string, JObject>()
-                  {
-                  { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, revitFileVersionId) },
+                StorageInfo info = await PreWorkNewVersion(credentials.TokenInternal, projectId, fileInFolder);
+                string satFileName = versionId + ".sat";
+                string callbackUrl = string.Format("{0}/api/forge/callback/designautomation/revit/{1}/{2}/{3}/{4}/{5}", Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_HOST"), userId, projectId, info.itemId.Base64Encode(), info.storageId.Base64Encode(), info.fileName.Base64Encode());
+
+                try
+                {
+                    WorkItem workItemSpec = new WorkItem(
+                      null,
+                      ACTIVITY_NAME_FULL,
+                      new Dictionary<string, JObject>()
+                      {
+                  { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, fileInFolder) },
                   { "inputGeometry", await BuildS3DownloadURL(satFileName) },
                   { "familyTemplate", await BuildS3DownloadURL(RFA_TEMPLATE) },
                   { "result", await BuildBIM360UploadURL(credentials.TokenInternal, info)  },
                   { "onComplete", new JObject { new JProperty("verb", "POST"), new JProperty("url", callbackUrl) }}
-                  },
-                  null);
+                      },
+                      null);
 
-                WorkItemsApi workItemApi = new WorkItemsApi();
-                workItemApi.Configuration.AccessToken = appAccessToken;
-                WorkItemStatus newWorkItem = await workItemApi.WorkItemsCreateWorkItemsAsync(null, null, workItemSpec);
+                    WorkItemsApi workItemApi = new WorkItemsApi();
+                    workItemApi.Configuration.AccessToken = appAccessToken;
+                    WorkItemStatus newWorkItem = await workItemApi.WorkItemsCreateWorkItemsAsync(null, null, workItemSpec);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-
         }
     }
 }
