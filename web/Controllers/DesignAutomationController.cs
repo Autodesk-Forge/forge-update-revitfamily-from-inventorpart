@@ -55,7 +55,7 @@ namespace Inventor2Revit.Controllers
                 */
 
                 // use Hangfire to schedule a job
-                BackgroundJob.Schedule(() => StartRevit(userId, projectId, versionId, _env.ContentRootPath), TimeSpan.FromSeconds(1));
+                BackgroundJob.Schedule(() => StartRevit(userId, projectId, versionId, _env.WebRootPath), TimeSpan.FromSeconds(1));
             }
             catch { }
 
