@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "web\Web.csproj", "{D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateFamily", "revit\UpdateFamily.csproj", "{1B28EA8E-0AB5-47C4-8BEA-A08D3FAD3C7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportSAT", "inventor\ExportSAT.csproj", "{2EA071B7-8E0A-4864-9227-34FBC7896734}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{1B28EA8E-0AB5-47C4-8BEA-A08D3FAD3C7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B28EA8E-0AB5-47C4-8BEA-A08D3FAD3C7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B28EA8E-0AB5-47C4-8BEA-A08D3FAD3C7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EA071B7-8E0A-4864-9227-34FBC7896734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EA071B7-8E0A-4864-9227-34FBC7896734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EA071B7-8E0A-4864-9227-34FBC7896734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EA071B7-8E0A-4864-9227-34FBC7896734}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

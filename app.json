@@ -1,0 +1,47 @@
+{
+    "name": "design.automation-csharp-inventor2revit",
+    "description": "Design Automation for Inventor and Revit",
+    "repository": "https://github.com/augustogoncalves/design.automation-csharp-inventor2revit",
+    "logo": "https://avatars0.githubusercontent.com/u/8017462?v=3&s=200",
+    "keywords": [
+        "autodesk",
+        "forge",
+        "bim360",
+        "webhook"
+    ],
+    "env": {
+        "FORGE_CLIENT_ID": {
+            "description": "Forge Client ID"
+        },
+        "FORGE_CLIENT_SECRET": {
+            "description": "Forge Client Secret"
+        },
+        "FORGE_CALLBACK_URL": {
+            "description": "Callback URL of your Forge app, required for 3-legged OAuth",
+            "value": "https://<<YOUR HEROKU APP NAME HERE>>.herokuapp.com/api/forge/callback/oauth"
+        },
+        "FORGE_WEBHOOK_CALLBACK_HOST": {
+            "description": "Callback URL of your webhook",
+            "value": "http://<<YOUR HEROKU APP NAME HERE>>.herokuapp.com"
+        },
+        "OAUTH_DATABASE": {
+            "description": "MongoDB connection string, e.g frmm mLab",
+            "value": "mongodb://user:password@ds1234.mlab.com:6789/databaseName"
+        },
+        "AWS_ACCESS_KEY": {
+            "description": "AWS Access key",
+            "value": ""
+        },
+        "AWS_SECRET_KEY": {
+            "description": "AWS Secrete Key",
+            "value": ""
+        }
+    },
+    "website": "https://developer.autodesk.com/",
+    "success_url": "/",
+    "buildpacks": [
+        {
+            "url": "https://github.com/jincod/dotnetcore-buildpack.git"
+        }
+    ]
+}

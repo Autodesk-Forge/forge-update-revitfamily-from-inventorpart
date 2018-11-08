@@ -41,8 +41,8 @@ namespace Inventor2Revit.Controllers
         private const string APPBUNBLENAME = "UpdateFamilyAppBundle.zip";
         private const string ALIAS = "v1";
         private const string ACTIVITY_NAME = "UpdateFamilyActivity";
-        private string ACTIVITY_NAME_FULL = string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS);
-        
+        private string ACTIVITY_NAME_FULL { get { return string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS); } }
+
         private const string RFA_TEMPLATE = "MetricGenericModel.rft";
 
         private async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
@@ -287,12 +287,12 @@ namespace Inventor2Revit.Controllers
             VersionsApi versionApi = new VersionsApi();
             versionApi.Configuration.AccessToken = accessToken;
             dynamic versionItem = await versionApi.GetVersionItemAsync(projectId, versionId);
-            string itemId = versionItem.data.id;  
+            string itemId = versionItem.data.id;
 
             ItemsApi itemApi = new ItemsApi();
             itemApi.Configuration.AccessToken = accessToken;
             dynamic item = await itemApi.GetItemAsync(projectId, itemId);
-            string folderId = item.data.relationships.parent.data.id;;
+            string folderId = item.data.relationships.parent.data.id; ;
 
             return folderId;
         }
@@ -304,15 +304,15 @@ namespace Inventor2Revit.Controllers
             FoldersApi folderApi = new FoldersApi();
             folderApi.Configuration.AccessToken = accessToken;
             dynamic contents = await folderApi.SearchFolderContentsAsync(
-                projectId, folderId, 0, 
+                projectId, folderId, 0,
                 new List<string>(new string[] { "rvt" }));
-            
-            if (contents.Data.data.Count == 0) 
+
+            if (contents.Data.data.Count == 0)
             {
                 throw new Exception("No Revit file found in folder!");
             }
 
-            if (contents.Data.data.Count > 1) 
+            if (contents.Data.data.Count > 1)
             {
                 throw new Exception("More than one Revit file found in folder!");
             }

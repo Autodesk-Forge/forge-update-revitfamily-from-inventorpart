@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Addin Type="Plugin">
+  <ClassId>{E616AD33-BA92-4730-92D3-3FD1A15E4BD0}</ClassId>
+  <ClientId>{E616AD33-BA92-4730-92D3-3FD1A15E4BD0}</ClientId>
+  <DisplayName>SATExportPlugin</DisplayName>
+  <Description>Export SAT file</Description>
+  <Assembly>SATExportPlugin.dll</Assembly>
+</Addin>

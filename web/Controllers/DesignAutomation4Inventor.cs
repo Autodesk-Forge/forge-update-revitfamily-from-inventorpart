@@ -41,8 +41,8 @@ namespace Inventor2Revit.Controllers
         private const string APPBUNBLENAME = "IptToSatAppBundle.zip";
         private const string ALIAS = "v1";
         private const string ACTIVITY_NAME = "IptToSatActivity";
-        private string ACTIVITY_NAME_FULL = string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS);
-        
+        private string ACTIVITY_NAME_FULL { get { return string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS); } }
+
 
         public async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
         {
