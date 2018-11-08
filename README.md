@@ -103,7 +103,9 @@ Open `http://localhost:3000` to start the app, select a folder to start monitori
 
 ## Deployment
 
-As file names are hardcoded, this sample is not suitable to be deployed.
+To deploy this application to Heroku, the **Callback URL** for Forge must use your `.herokuapp.com` address. After clicking on the button below, at the Heroku Create New App page, set your Client ID, Secret and Callback URL for Forge.
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 
 # Further Reading
