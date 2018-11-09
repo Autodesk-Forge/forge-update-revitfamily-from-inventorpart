@@ -27,7 +27,7 @@ This sample is based on [this Webhook sample](https://github.com/Autodesk-Forge/
 
 ## Demonstration
 
-There a few moving parts on this sample, [this video](https://www.youtube.com/watch?v=FH53EXyRPzg) demonstrates the sample.
+What's the recording at [Youtube](https://www.youtube.com/watch?v=gj12qkCNNyM).
 
 # Setup
 
@@ -57,6 +57,8 @@ Right-click on the project, then go to **Debug**. Adjust the settings as shown b
 **Visual Sutdio Code** (Windows, MacOS):
 
 Open the folder, at the bottom-right, select **Yes** and **Restore**. This restores the packages (e.g. Autodesk.Forge) and creates the launch.json file. See *Tips & Tricks* for .NET Core on MacOS.
+
+**Important**: For Visual Code (Windows or MacOS) open only the `/web/` folder. This IDE doesn't recognize the Inventor & Revit plugins, so opening the entire solution may fail.
 
 ![](readme/visual_code_restore.png)
 
@@ -89,17 +91,21 @@ At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Se
     "FORGE_CLIENT_SECRET": "your secret here",
     "FORGE_CALLBACK_URL": "http://localhost:3000/api/forge/callback/oauth",
     "OAUTH_DATABASE": "mongodb://<dbuser>:<dbpassword>@ds<number>.mlab.com:<port>/inventor2revit",
-    "FORGE_WEBHOOK_CALLBACK_HOST": "http://1234.ngrok.io",
+    "FORGE_WEBHOOK_CALLBACK_HOST": "your ngrok address here: e.g. http://abcd1234.ngrok.io",
     "AWS_ACCESS_KEY": "your AWS access key here",
     "AWS_SECRET_KEY": "your AWS secret key here"
 },
 ```
 
-Before running the sample, it's recomended to already upload a RVT project and a IPT file into a BIM 360 Folder. 
+Before running the sample, it's recomended to already upload a RVT project and a IPT file into a BIM 360 Folder. See `/samplefiles` folder. 
 
 A compiled version of the `Inventor` and `Revit` plugins (.bundles) are included on the `web` module folder. Any changes on these plugins will require to create a new .bundle as a .zip file. These file names are hardcoded.
 
-Open `http://localhost:3000` to start the app, select a folder to start monitoring. Upload a new version of the `IPT` file.
+Run `ngrok http 3000` to create a tunnel to your local machine, then copy the address into the `FORGE_WEBHOOK_CALLBACK_HOST` environment variable.
+
+Start the app.
+
+Open `http://localhost:3000` to start the app, select a folder to start monitoring. Upload a new version of the `IPT` file and the process should start. You can monitor the Jobs via Hangfire dashboard: `http://localhost:3000/hangfire`. 
 
 ## Deployment
 
@@ -134,7 +140,7 @@ Other APIs:
 
 ### Tips & Tricks
 
-This sample uses .NET Core and works fine on both Windows and MacOS, see [this tutorial for MacOS](https://github.com/augustogoncalves/dotnetcoreheroku).
+This sample uses .NET Core and works fine on both Windows and MacOS, see [this tutorial for MacOS](https://github.com/augustogoncalves/dotnetcoreheroku). **Important**: For Visual Code (Windows or MacOS) open only the `/web/` folder. 
 
 ### Troubleshooting
 

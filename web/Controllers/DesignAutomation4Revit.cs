@@ -282,27 +282,27 @@ namespace Inventor2Revit.Controllers
             };
         }
 
-        public async Task<string> GetFolderId(string projectId, string versionId, string accessToken)
+        public async Task<string> GetFolderId(string projectId, string versionId, string userAccessToken)
         {
             VersionsApi versionApi = new VersionsApi();
-            versionApi.Configuration.AccessToken = accessToken;
+            versionApi.Configuration.AccessToken = userAccessToken;
             dynamic versionItem = await versionApi.GetVersionItemAsync(projectId, versionId);
             string itemId = versionItem.data.id;
 
             ItemsApi itemApi = new ItemsApi();
-            itemApi.Configuration.AccessToken = accessToken;
+            itemApi.Configuration.AccessToken = userAccessToken;
             dynamic item = await itemApi.GetItemAsync(projectId, itemId);
             string folderId = item.data.relationships.parent.data.id; ;
 
             return folderId;
         }
 
-        public async Task<List<string>> GetRevitFileVersionId(string projectId, string versionId, string accessToken)
+        public async Task<List<string>> GetRevitFileVersionId(string projectId, string versionId, string userAccessToken)
         {
-            string folderId = await GetFolderId(projectId, versionId, accessToken);
+            string folderId = await GetFolderId(projectId, versionId, userAccessToken);
 
             FoldersApi folderApi = new FoldersApi();
-            folderApi.Configuration.AccessToken = accessToken;
+            folderApi.Configuration.AccessToken = userAccessToken;
             dynamic contents = await folderApi.SearchFolderContentsAsync(
                 projectId, folderId, 0,
                 new List<string>(new string[] { "rvt" }));
@@ -334,13 +334,10 @@ namespace Inventor2Revit.Controllers
 
             Credentials credentials = await Credentials.FromDatabaseAsync(userId);
 
-            //ItemsApi itemApi = new ItemsApi();
-            //itemApi.Configuration.AccessToken = credentials.TokenInternal;
-            //string revitFileItemId = await GetRevitFileItemId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
-            //dynamic item = await itemApi.GetItemAsync(projectId, "urn:adsk.wipprod:dm.lineage:5-CLC6KUQr-lr06gXPyGhw");
-            //string revitFileVersionId = item.data.relationships.tip.data.id; // last version
+            // find Revit files on the folder where the IPT is
             List<string> rvtFilesOnFolder = await GetRevitFileVersionId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
 
+            // check Design Automation for Revit setup
             await EnsureAppBundle(appAccessToken, contentRootPath);
             await EnsureActivity(appAccessToken);
             await EnsureTemplateExists(contentRootPath);
@@ -360,11 +357,11 @@ namespace Inventor2Revit.Controllers
                       ACTIVITY_NAME_FULL,
                       new Dictionary<string, JObject>()
                       {
-                  { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, fileInFolder) },
-                  { "inputGeometry", await BuildS3DownloadURL(satFileName) },
-                  { "familyTemplate", await BuildS3DownloadURL(RFA_TEMPLATE) },
-                  { "result", await BuildBIM360UploadURL(credentials.TokenInternal, info)  },
-                  { "onComplete", new JObject { new JProperty("verb", "POST"), new JProperty("url", callbackUrl) }}
+                        { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, fileInFolder) },
+                        { "inputGeometry", await BuildS3DownloadURL(satFileName) },
+                        { "familyTemplate", await BuildS3DownloadURL(RFA_TEMPLATE) },
+                        { "result", await BuildBIM360UploadURL(credentials.TokenInternal, info)  },
+                        { "onComplete", new JObject { new JProperty("verb", "POST"), new JProperty("url", callbackUrl) }}
                       },
                       null);
 
