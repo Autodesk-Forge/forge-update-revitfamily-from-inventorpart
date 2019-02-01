@@ -19,7 +19,7 @@
 
 This sample monitors a BIM 360 Folder for `version.added` event, when a new IPT file (or version) is uploaded, it triggers `Design Automation` for Inventor to convert it to `.SAT` file. Then triggers `Design Automation` for Revit to import this `SAT` file into a new Revit Family `RFA` (using a predefined Revit Family Template, `RFT`). Then opens a Revit `RVT` file (on the same folder where the IPT was uploaded) and updade the family. The resulting Revit file is uploaded back to BIM 360 as a new version.
 
-This sample is based on [this Webhook sample](https://github.com/Autodesk-Forge/data.management-csharp-webhook). Learn more about Webhooks and 3-legged Refresh & Access Token at [this blog post](https://forge.autodesk.com/blog/webhooks-and-bim-360-c).
+This sample is based on [this Webhook sample](https://github.com/Autodesk-Forge/data.management-csharp-webhook). Learn more about Webhooks and 3-legged Refresh & Access Token at [this blog post](https://forge.autodesk.com/blog/webhooks-and-bim-360-c). Also based on the [Learn Forge Tutorial](http://learnforge.autodesk.io).
 
 ## Thumbnail
 
@@ -27,7 +27,11 @@ This sample is based on [this Webhook sample](https://github.com/Autodesk-Forge/
 
 ## Demonstration
 
-What's the recording at [Youtube](https://www.youtube.com/watch?v=gj12qkCNNyM).
+Whatch the recording at [Youtube](https://www.youtube.com/watch?v=gj12qkCNNyM).
+
+## Live version
+
+Try it at [inventor2revit.herokuapp.com/](http://inventor2revit.herokuapp.com/), use the **Table_Chair.rvt** and both **Chair_Orientation.ipt** (with and without headrest) sample files at [this folder](https://github.com/autodesk-forge/design.automation-csharp-inventor2revit/tree/master/samplefiles)
 
 # Setup
 
@@ -79,6 +83,10 @@ There are several tools to view your database, [Robo 3T](https://robomongo.org/)
 
 Create an AWS Account, allow API Access, the `access key` and `secret key` will be used on this sample.
 
+**ngrok**
+
+Run `ngrok http 3000` to create a tunnel to your local machine, then copy the address into the `FORGE_WEBHOOK_CALLBACK_HOST` environment variable.
+
 **Environment variables**
 
 At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Secret and callback URL. Also define the `ASPNETCORE_URLS` variable. The end result should be as shown below:
@@ -99,13 +107,11 @@ At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Se
 
 Before running the sample, it's recomended to already upload a RVT project and a IPT file into a BIM 360 Folder. See `/samplefiles` folder. 
 
-A compiled version of the `Inventor` and `Revit` plugins (.bundles) are included on the `web` module folder. Any changes on these plugins will require to create a new .bundle as a .zip file. These file names are hardcoded.
-
-Run `ngrok http 3000` to create a tunnel to your local machine, then copy the address into the `FORGE_WEBHOOK_CALLBACK_HOST` environment variable.
+A compiled version of the Inventor and Revit plugins (.bundles) are included on the `web` module. Any changes on these plugins will require to create a new .bundle as a .zip file, the **Post-build** event should create them. These file names are hardcoded.
 
 Start the app.
 
-Open `http://localhost:3000` to start the app, select a folder to start monitoring. Upload a new version of the `IPT` file and the process should start. You can monitor the Jobs via Hangfire dashboard: `http://localhost:3000/hangfire`. 
+Before start, upload the **Table_Chair.rvt** and **Chair_Orientation.ipt** to a BIM 360 folder. Open `http://localhost:3000` to start the app, select a folder to start monitoring. Upload a new version of the `IPT` (**Chair with headrest/Chair_Orientation.ipt**, same name, but with headrest) file and the process should start. You can monitor the Jobs via Hangfire dashboard: `http://localhost:3000/hangfire`. 
 
 ## Deployment
 
