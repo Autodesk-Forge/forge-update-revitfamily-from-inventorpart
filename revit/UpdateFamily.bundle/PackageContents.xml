@@ -7,7 +7,7 @@
                          SeriesMax="R2018" />
     <ComponentEntry AppName="updateRFAfile" 
                     Version="1.0.0" 
-                    ModuleName="./Contents/updateRFA.addin" 
+                    ModuleName="./Contents/UpdateFamily.addin" 
                     AppDescription="updateRFAfile" 
                     LoadOnCommandInvocation="False" 
                     LoadOnRevitStartup="True" />

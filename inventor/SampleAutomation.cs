@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Inventor;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.Text;
 using System.IO;
 

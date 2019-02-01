@@ -31,15 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DesignAutomationBridge">
-      <HintPath>.\DesignAutomationBridge.dll</HintPath>
+    <Reference Include="DesignAutomationBridge, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autodesk.Forge.DesignAutomation.Revit.2019.0.0-beta2\lib\net47\DesignAutomationBridge.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPI">
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2019\RevitAPI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2018\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -55,5 +52,17 @@
     <Compile Include="Commands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="UpdateFamily.bundle\Contents\UpdateFamily.addin" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="UpdateFamily.bundle\PackageContents.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /F "$(TargetDir)*.dll" "$(ProjectDir)UpdateFamily.bundle\Contents\"
+del /F "$(ProjectDir)..\web\wwwroot\bundles\UpdateFamily.zip"
+"C:\Program Files\7-Zip\7z.exe" a -tzip "$(ProjectDir)../web/wwwroot/bundles/UpdateFamily.zip" "$(ProjectDir)UpdateFamily.bundle\" -xr0!*.pdb</PostBuildEvent>
+  </PropertyGroup>
 </Project>
