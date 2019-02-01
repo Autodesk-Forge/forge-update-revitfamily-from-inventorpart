@@ -85,7 +85,7 @@ Create an AWS Account, allow API Access, the `access key` and `secret key` will 
 
 **ngrok**
 
-Run `ngrok http 3000` to create a tunnel to your local machine, then copy the address into the `FORGE_WEBHOOK_CALLBACK_HOST` environment variable.
+Run `ngrok http 3000 -host-header="localhost:3000"` to create a tunnel to your local machine, then copy the address into the `FORGE_WEBHOOK_CALLBACK_HOST` environment variable.
 
 **Environment variables**
 

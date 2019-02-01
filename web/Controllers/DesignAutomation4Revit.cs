@@ -253,7 +253,11 @@ namespace Inventor2Revit.Controllers
             return new XrefTreeArgument()
             {
                 Url = info.uploadUrl,
-                Verb = Verb.Put
+                Verb = Verb.Put,
+                Headers = new Dictionary<string, string>()
+                {
+                    { "Authorization", "Bearer " + userAccessToken }
+                }
             };
         }
 
