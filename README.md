@@ -31,7 +31,7 @@ Whatch the recording at [Youtube](https://www.youtube.com/watch?v=gj12qkCNNyM).
 
 ## Live version
 
-Try it at [inventor2revit.herokuapp.com/](http://inventor2revit.herokuapp.com/), use the **Table_Chair.rvt** and both **Chair_Orientation.ipt** (with and without headrest) sample files at [this folder](https://github.com/autodesk-forge/design.automation-csharp-inventor2revit/tree/master/samplefiles)
+Try it at [inventor2revit.herokuapp.com](http://inventor2revit.herokuapp.com/), use the **Table_Chair.rvt** and both **Chair_Orientation.ipt** (with and without headrest) sample files at [this folder](https://github.com/autodesk-forge/design.automation-csharp-inventor2revit/tree/master/samplefiles)
 
 # Setup
 
@@ -50,7 +50,7 @@ Try it at [inventor2revit.herokuapp.com/](http://inventor2revit.herokuapp.com/),
 
 Clone this project or download it. It's recommended to install [GitHub desktop](https://desktop.github.com/). To clone it via command line, use the following (**Terminal** on MacOSX/Linux, **Git Shell** on Windows):
 
-    git clone https://github.com/augustogoncalves/design.automation-csharp-inventor2revit
+    git clone https://github.com/autodesk-forge/design.automation-csharp-inventor2revit
 
 **Visual Studio** (Windows):
 
