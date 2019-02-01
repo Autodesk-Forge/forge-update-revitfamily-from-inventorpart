@@ -7,7 +7,7 @@
         <!-- For Inventor Plug-in, the "Module" attribute must point to the .addin manifest file. -->
         <ComponentEntry LoadOnAutoCADStartup="False" LoadOnCommandInvocation="False"
             AppDescription="SATExportPlugin App Package."
-            ModuleName="./Contents/SATExportPlugin.Inventor.addin" AppName="SATExportPlugin"/>
+            ModuleName="./Contents/ExportSAT.Inventor.addin" AppName="SATExportPlugin"/>
     </Components>
     <EnvironmentVariables>
     </EnvironmentVariables>

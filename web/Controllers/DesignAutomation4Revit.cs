@@ -18,48 +18,71 @@
 
 using Amazon.S3;
 using Autodesk.Forge;
-using Autodesk.Forge.DesignAutomation.v3;
+using Autodesk.Forge.Core;
+using Autodesk.Forge.DesignAutomation;
+using Autodesk.Forge.DesignAutomation.Model;
 using Autodesk.Forge.Model;
-using Autodesk.Forge.Model.DesignAutomation.v3;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
-using ActivitiesApi = Autodesk.Forge.DesignAutomation.v3.ActivitiesApi;
-using Activity = Autodesk.Forge.Model.DesignAutomation.v3.Activity;
-using WorkItem = Autodesk.Forge.Model.DesignAutomation.v3.WorkItem;
-using WorkItemsApi = Autodesk.Forge.DesignAutomation.v3.WorkItemsApi;
+using Activity = Autodesk.Forge.DesignAutomation.Model.Activity;
+using Alias = Autodesk.Forge.DesignAutomation.Model.Alias;
+using AppBundle = Autodesk.Forge.DesignAutomation.Model.AppBundle;
+using Parameter = Autodesk.Forge.DesignAutomation.Model.Parameter;
+using WorkItem = Autodesk.Forge.DesignAutomation.Model.WorkItem;
+using WorkItemStatus = Autodesk.Forge.DesignAutomation.Model.WorkItemStatus;
 
 namespace Inventor2Revit.Controllers
 {
     public class DesignAutomation4Revit
     {
         private const string APPNAME = "UpdateFamilyApp";
-        private const string APPBUNBLENAME = "UpdateFamilyAppBundle.zip";
-        private const string ALIAS = "v1";
+        private const string APPBUNBLENAME = "UpdateFamily.zip";
         private const string ACTIVITY_NAME = "UpdateFamilyActivity";
-        private string ACTIVITY_NAME_FULL { get { return string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, ALIAS); } }
-
+        private const string ENGINE_NAME = "Autodesk.Revit+2019";
         private const string RFA_TEMPLATE = "MetricGenericModel.rft";
 
-        private async Task EnsureAppBundle(string appAccessToken, string contentRootPath)
+        /// NickName.AppBundle+Alias
+        private string AppBundleFullName { get { return string.Format("{0}.{1}+{2}", Utils.NickName, APPNAME, Alias); } }
+        /// NickName.Activity+Alias
+        private string ActivityFullName { get { return string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, Alias); } }
+        /// Prefix for AppBundles and Activities
+        public static string NickName { get { return Credentials.GetAppSetting("FORGE_CLIENT_ID"); } }
+        /// Alias for the app (e.g. DEV, STG, PROD). This value may come from an environment variable
+        public static string Alias { get { return "dev"; } }
+        // Design Automation v3 API
+        private DesignAutomationClient _designAutomation;
+
+        public DesignAutomation4Revit()
         {
-            //List<string> apps = await da.GetAppBundles(nickName);
-            AppBundlesApi appBundlesApi = new AppBundlesApi();
-            appBundlesApi.Configuration.AccessToken = appAccessToken;
+            // need to initialize manually as this class runs in background
+            ForgeService service =
+                new ForgeService(
+                    new HttpClient(
+                        new ForgeHandler(Microsoft.Extensions.Options.Options.Create(new ForgeConfiguration()
+                        {
+                            ClientId = Credentials.GetAppSetting("FORGE_CLIENT_ID"),
+                            ClientSecret = Credentials.GetAppSetting("FORGE_CLIENT_SECRET")
+                        }))
+                        {
+                            InnerHandler = new HttpClientHandler()
+                        })
+                );
+            _designAutomation = new DesignAutomationClient(service);
+        }
 
-            // at this point we can either call get by alias/id and catch or get a list and check
-            //dynamic appBundle = await appBundlesApi.AppbundlesByIdAliasesByAliasIdGetAsync(APPNAME, ALIAS);
-
-            // or get the list and check for the name
-            PageString appBundles = await appBundlesApi.AppBundlesGetItemsAsync();
+        public async Task EnsureAppBundle(string contentRootPath)
+        {
+            // get the list and check for the name
+            Page<string> appBundles = await _designAutomation.GetAppBundlesAsync();
             bool existAppBundle = false;
             foreach (string appName in appBundles.Data)
             {
-                if (appName.Contains(string.Format("{0}.{1}+{2}", Utils.NickName, APPNAME, ALIAS)))
+                if (appName.Contains(AppBundleFullName))
                 {
                     existAppBundle = true;
                     continue;
@@ -69,40 +92,43 @@ namespace Inventor2Revit.Controllers
             if (!existAppBundle)
             {
                 // check if ZIP with bundle is here
-                string packageZipPath = Path.Combine(contentRootPath, APPBUNBLENAME);
-                if (!System.IO.File.Exists(packageZipPath)) throw new Exception("UpdateFamily appbundle not found at " + packageZipPath);
+                string packageZipPath = Path.Combine(contentRootPath + "/bundles/", APPBUNBLENAME);
+                if (!File.Exists(packageZipPath)) throw new Exception("UpdateFamily appbundle not found at " + packageZipPath);
 
-                // create bundle
-                AppBundle appBundleSpec = new AppBundle(APPNAME, null, "Autodesk.Revit+2019", null, null, APPNAME, null, APPNAME);
-                AppBundle newApp = await appBundlesApi.AppBundlesCreateItemAsync(appBundleSpec);
-                if (newApp == null) throw new Exception("Cannot create new app");
+                AppBundle appBundleSpec = new AppBundle()
+                {
+                    Package = APPNAME,
+                    Engine = ENGINE_NAME,
+                    Id = APPNAME,
+                    Description = string.Format("Description for {0}", APPBUNBLENAME),
 
-                // create alias
-                Alias aliasSpec = new Alias(1, null, ALIAS);
-                Alias newAlias = await appBundlesApi.AppBundlesCreateAliasAsync(APPNAME, aliasSpec);
+                };
+                AppBundle newAppVersion = await _designAutomation.CreateAppBundleAsync(appBundleSpec);
+                if (newAppVersion == null) throw new Exception("Cannot create new app");
+
+                // create alias pointing to v1
+                Alias aliasSpec = new Alias() { Id = Alias, Version = 1 };
+                Alias newAlias = await _designAutomation.CreateAppBundleAliasAsync(APPNAME, aliasSpec);
 
                 // upload the zip with .bundle
-                RestClient uploadClient = new RestClient(newApp.UploadParameters.EndpointURL);
+                RestClient uploadClient = new RestClient(newAppVersion.UploadParameters.EndpointURL);
                 RestRequest request = new RestRequest(string.Empty, Method.POST);
                 request.AlwaysMultipartFormData = true;
-                foreach (KeyValuePair<string, object> x in newApp.UploadParameters.FormData)
-                    request.AddParameter(x.Key, x.Value);
+                foreach (KeyValuePair<string, string> x in newAppVersion.UploadParameters.FormData) request.AddParameter(x.Key, x.Value);
                 request.AddFile("file", packageZipPath);
                 request.AddHeader("Cache-Control", "no-cache");
-                var res = await uploadClient.ExecuteTaskAsync(request);
+                await uploadClient.ExecuteTaskAsync(request);
             }
         }
 
-        private async Task EnsureActivity(string appAccessToken)
+        private async Task EnsureActivity()
         {
-            ActivitiesApi activitiesApi = new ActivitiesApi();
-            activitiesApi.Configuration.AccessToken = appAccessToken;
-            PageString activities = await activitiesApi.ActivitiesGetItemsAsync();
+            Page<string> activities = await _designAutomation.GetActivitiesAsync();
 
             bool existActivity = false;
             foreach (string activity in activities.Data)
             {
-                if (activity.Contains(ACTIVITY_NAME_FULL))
+                if (activity.Contains(ActivityFullName))
                 {
                     existActivity = true;
                     continue;
@@ -113,29 +139,25 @@ namespace Inventor2Revit.Controllers
             {
                 // create activity
                 string commandLine = string.Format(@"$(engine.path)\\revitcoreconsole.exe /i $(args[rvtFile].path) /al $(appbundles[{0}].path)", APPNAME);
-                ModelParameter rvtFile = new ModelParameter(false, false, ModelParameter.VerbEnum.Get, "Input Revit File", true, "$(rvtFile)");
-                ModelParameter satFile = new ModelParameter(false, false, ModelParameter.VerbEnum.Get, "Input SAT File", true, "InputGeometry.sat");
-                ModelParameter rftFile = new ModelParameter(false, false, ModelParameter.VerbEnum.Get, "Input RFT File", true, "FamilyTemplate.rft");
-                ModelParameter result = new ModelParameter(false, false, ModelParameter.VerbEnum.Put, "Resulting JSON File", true, "ResultModel.rvt");
-                Activity activitySpec = new Activity(
-                  new List<string>() { commandLine },
-                  new Dictionary<string, ModelParameter>() {
-                    { "rvtFile", rvtFile },
-                    { "inputGeometry", satFile },
-                    { "familyTemplate", rftFile },
-                    { "result", result }
-                  },
-                  "Autodesk.Revit+2019",
-                  new List<string>() { string.Format("{0}.{1}+{2}", Utils.NickName, APPNAME, ALIAS) },
-                  null,
-                  ACTIVITY_NAME,
-                  null,
-                  ACTIVITY_NAME);
-                Activity newActivity = await activitiesApi.ActivitiesCreateItemAsync(activitySpec);
+                Activity activitySpec = new Activity()
+                {
+                    Id = ACTIVITY_NAME,
+                    Appbundles = new List<string>() { AppBundleFullName },
+                    CommandLine = new List<string>() { commandLine },
+                    Engine = ENGINE_NAME,
+                    Parameters = new Dictionary<string, Parameter>()
+                    {
+                        { "rvtFile", new Parameter() { Description = "Input Revit Model", LocalName = "$(rvtFile)", Ondemand = false, Required = true, Verb = Verb.Get, Zip = false } },
+                        { "inputGeometry", new Parameter() { Description = "Input SAT File", LocalName = "InputGeometry.sat", Ondemand = false, Required = true, Verb = Verb.Get, Zip = false } },
+                        { "familyTemplate", new Parameter() { Description = "Input RFT File", LocalName = "FamilyTemplate.rft", Ondemand = false, Required = true, Verb = Verb.Get, Zip = false } },
+                        { "result", new Parameter() { Description = "Modifed Revit Model", LocalName = "ResultModel.rvt", Ondemand = false, Required = true, Verb = Verb.Put, Zip = false } }
+                    }
+                };
+                Activity newActivity = await _designAutomation.CreateActivityAsync(activitySpec);
 
-                // create alias
-                Alias aliasSpec = new Alias(1, null, ALIAS);
-                Alias newAlias = await activitiesApi.ActivitiesCreateAliasAsync(ACTIVITY_NAME, aliasSpec);
+                // specify the alias for this Activity
+                Alias aliasSpec = new Alias() { Id = Alias, Version = 1 };
+                Alias newAlias = await _designAutomation.CreateActivityAliasAsync(ACTIVITY_NAME, aliasSpec);
             }
         }
 
@@ -151,7 +173,7 @@ namespace Inventor2Revit.Controllers
             await client.UploadObjectFromFilePathAsync(Utils.S3BucketName, RFA_TEMPLATE, rftPath, null);
         }
 
-        private async Task<JObject> BuildBIM360DownloadURL(string userAccessToken, string projectId, string versionId)
+        private async Task<XrefTreeArgument> BuildBIM360DownloadURL(string userAccessToken, string projectId, string versionId)
         {
             VersionsApi versionApi = new VersionsApi();
             versionApi.Configuration.AccessToken = userAccessToken;
@@ -164,13 +186,14 @@ namespace Inventor2Revit.Controllers
             string objectName = versionItemParams[versionItemParams.Length - 1];
             string downloadUrl = string.Format("https://developer.api.autodesk.com/oss/v2/buckets/{0}/objects/{1}", bucketKey, objectName);
 
-            return new JObject
+            return new XrefTreeArgument()
             {
-                new JProperty("url", downloadUrl),
-                new JProperty("headers",
-                new JObject{
-                    new JProperty("Authorization", "Bearer " + userAccessToken)
-                })
+                Url = downloadUrl,
+                Verb = Verb.Get,
+                Headers = new Dictionary<string, string>()
+                {
+                    { "Authorization", "Bearer " + userAccessToken }
+                }
             };
         }
 
@@ -225,16 +248,12 @@ namespace Inventor2Revit.Controllers
             public string uploadUrl;
         }
 
-        private async Task<JObject> BuildBIM360UploadURL(string userAccessToken, StorageInfo info)
+        private async Task<XrefTreeArgument> BuildBIM360UploadURL(string userAccessToken, StorageInfo info)
         {
-            return new JObject
+            return new XrefTreeArgument()
             {
-                new JProperty("verb", "PUT"),
-                new JProperty("url", info.uploadUrl),
-                new JProperty("headers",
-                new JObject{
-                    new JProperty("Authorization", "Bearer " + userAccessToken)
-                })
+                Url = info.uploadUrl,
+                Verb = Verb.Put
             };
         }
 
@@ -257,7 +276,7 @@ namespace Inventor2Revit.Controllers
             };
         }
 
-        private async Task<JObject> BuildS3DownloadURL(string fileName)
+        private async Task<XrefTreeArgument> BuildS3DownloadURL(string fileName)
         {
             var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
             IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
@@ -275,10 +294,10 @@ namespace Inventor2Revit.Controllers
 
             Uri downloadFromS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, fileName, DateTime.Now.AddMinutes(5), null));
 
-            return new JObject
+            return new XrefTreeArgument()
             {
-                new JProperty("verb", "GET"),
-                new JProperty("url", downloadFromS3.ToString())
+                Url = downloadFromS3.ToString(),
+                Verb = Verb.Get
             };
         }
 
@@ -324,13 +343,8 @@ namespace Inventor2Revit.Controllers
 
         public async Task StartUploadFamily(string userId, string projectId, string versionId, string contentRootPath)
         {
-            TwoLeggedApi oauth = new TwoLeggedApi();
-            string appAccessToken = (await oauth.AuthenticateAsync(Credentials.GetAppSetting("FORGE_CLIENT_ID"), Credentials.GetAppSetting("FORGE_CLIENT_SECRET"), oAuthConstants.CLIENT_CREDENTIALS, new Scope[] { Scope.CodeAll })).ToObject<Bearer>().AccessToken;
-
-            // uncomment these lines to clear all appbundles & activities under your account (for testing)
-            //ForgeAppsApi forgeAppApi = new ForgeAppsApi();
-            //forgeAppApi.Configuration.AccessToken = appAccessToken;
-            //await forgeAppApi.ForgeAppsDeleteUserAsync("me");
+            // uncomment these lines to clear all appbundles & activities under your account
+            //await _designAutomation.DeleteForgeAppAsync("me");
 
             Credentials credentials = await Credentials.FromDatabaseAsync(userId);
 
@@ -338,8 +352,8 @@ namespace Inventor2Revit.Controllers
             List<string> rvtFilesOnFolder = await GetRevitFileVersionId(projectId, Utils.Base64Decode(versionId), credentials.TokenInternal);
 
             // check Design Automation for Revit setup
-            await EnsureAppBundle(appAccessToken, contentRootPath);
-            await EnsureActivity(appAccessToken);
+            await EnsureAppBundle(contentRootPath);
+            await EnsureActivity();
             await EnsureTemplateExists(contentRootPath);
 
             // at this point we're triggering one Design Automation workItem for each RVT file on the folder,
@@ -350,29 +364,19 @@ namespace Inventor2Revit.Controllers
                 string satFileName = versionId + ".sat";
                 string callbackUrl = string.Format("{0}/api/forge/callback/designautomation/revit/{1}/{2}/{3}/{4}/{5}", Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_HOST"), userId, projectId, info.itemId.Base64Encode(), info.storageId.Base64Encode(), info.fileName.Base64Encode());
 
-                try
+                WorkItem workItemSpec = new WorkItem()
                 {
-                    WorkItem workItemSpec = new WorkItem(
-                      null,
-                      ACTIVITY_NAME_FULL,
-                      new Dictionary<string, JObject>()
-                      {
+                    ActivityId = ActivityFullName,
+                    Arguments = new Dictionary<string, IArgument>()
+                    {
                         { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, fileInFolder) },
                         { "inputGeometry", await BuildS3DownloadURL(satFileName) },
                         { "familyTemplate", await BuildS3DownloadURL(RFA_TEMPLATE) },
-                        { "result", await BuildBIM360UploadURL(credentials.TokenInternal, info)  },
-                        { "onComplete", new JObject { new JProperty("verb", "POST"), new JProperty("url", callbackUrl) }}
-                      },
-                      null);
-
-                    WorkItemsApi workItemApi = new WorkItemsApi();
-                    workItemApi.Configuration.AccessToken = appAccessToken;
-                    WorkItemStatus newWorkItem = await workItemApi.WorkItemsCreateWorkItemsAsync(null, null, workItemSpec);
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
+                        { "result",  await BuildBIM360UploadURL(credentials.TokenInternal, info)  },
+                        { "onComplete", new XrefTreeArgument { Verb = Verb.Post, Url = callbackUrl } }
+                    }
+                };
+                WorkItemStatus workItemStatus = await _designAutomation.CreateWorkItemsAsync(workItemSpec);
             }
         }
     }
