@@ -46,7 +46,7 @@ namespace Inventor2Revit.Controllers
         private const string ENGINE_NAME = "Autodesk.Inventor+23";
 
         /// NickName.AppBundle+Alias
-        private string AppBundleFullName { get { return string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, Alias); } }
+        private string AppBundleFullName { get { return string.Format("{0}.{1}+{2}", Utils.NickName, APPNAME, Alias); } }
         /// NickName.Activity+Alias
         private string ActivityFullName { get { return string.Format("{0}.{1}+{2}", Utils.NickName, ACTIVITY_NAME, Alias); } }
         /// Prefix for AppBundles and Activities
