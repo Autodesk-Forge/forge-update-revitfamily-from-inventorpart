@@ -20,7 +20,7 @@ This sample load and update instances of a family on a model.
 
 ## References
 
-This Revit plugin requires **RevitAPI** and **DesignAutomationBridge** references. The `Reference Paht` option should point to the folder.
+This Revit plugin requires **RevitAPI** and **DesignAutomationBridge** references. The `Reference Path` option should point to the folder.
 
 ![](../readme/reference_path.png)
 
@@ -29,7 +29,9 @@ This Revit plugin requires **RevitAPI** and **DesignAutomationBridge** reference
 Under **Properties**, at **Build Event** page, the following `Post-build event command line` will copy the DLL into the `\UpdateFamily.bundle/Content/` folder, create a `.ZIP` (using [7z](https://www.7-zip.org/)) and copy to the Webapp folder.
 
 ```
-xcopy /Y /F "$(TargetDir)*.dll" "$(ProjectDir)UpdateFamily.bundle\Contents\"del /F "$(ProjectDir)..\web\wwwroot\bundles\UpdateFamily.zip""C:\Program Files\7-Zip\7z.exe" a -tzip "$(ProjectDir)../web/wwwroot/bundles/UpdateFamily.zip" "$(ProjectDir)UpdateFamily.bundle\" -xr0!*.pdb
+xcopy /Y /F "$(TargetDir)*.dll" "$(ProjectDir)UpdateFamily.bundle\Contents\"
+del /F "$(ProjectDir)..\web\wwwroot\bundles\UpdateFamily.zip"
+"C:\Program Files\7-Zip\7z.exe" a -tzip "$(ProjectDir)../web/wwwroot/bundles/UpdateFamily.zip" "$(ProjectDir)UpdateFamily.bundle\" -xr0!*.pdb
 ```
 
 # Further Reading
