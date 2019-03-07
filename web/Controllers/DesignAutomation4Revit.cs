@@ -366,7 +366,7 @@ namespace Inventor2Revit.Controllers
             {
                 StorageInfo info = await PreWorkNewVersion(credentials.TokenInternal, projectId, fileInFolder);
                 string satFileName = versionId + ".sat";
-                string callbackUrl = string.Format("{0}/api/forge/callback/designautomation/revit/{1}/{2}/{3}/{4}/{5}", Credentials.GetAppSetting("FORGE_WEBHOOK_CALLBACK_HOST"), userId, projectId, info.itemId.Base64Encode(), info.storageId.Base64Encode(), info.fileName.Base64Encode());
+                string callbackUrl = string.Format("{0}/api/forge/callback/designautomation/revit/{1}/{2}/{3}/{4}/{5}", Credentials.GetAppSetting("FORGE_WEBHOOK_URL"), userId, projectId, info.itemId.Base64Encode(), info.storageId.Base64Encode(), info.fileName.Base64Encode());
 
                 WorkItem workItemSpec = new WorkItem()
                 {
