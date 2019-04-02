@@ -68,14 +68,7 @@ Open the folder, at the bottom-right, select **Yes** and **Restore**. This resto
 
 **MongoDB**
 
-[MongoDB](https://www.mongodb.com) is a no-SQL database based on "documents", which stores JSON-like data. For testing purpouses, you can either use local or live. One easy way is using [mLab](https://mlab.com).
-
-1. Create a account
-2. Create a new database (e.g. named `inventor2revit `)
-3. Under **Collections**, add a new `users` collection
-4. Under **Users**, add a new database user, e.g. `appuser`
-
-At this point the connection string should be in the form of `mongodb://<dbuser>:<dbpassword>@ds<number>.mlab.com:<port>/inventor2revit `. 
+[MongoDB](https://www.mongodb.com) is a no-SQL database based on "documents", which stores JSON-like data. For testing purpouses, you can either use local or live. For cloud environment, try [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or [Compose MongoDB](https://elements.heroku.com/addons/mongohq). With MongoDB Atlas you can set up an account for free and create clustered instances.
 
 There are several tools to view your database, [Robo 3T](https://robomongo.org/) (formerly Robomongo) is a free lightweight GUI that can be used. When it opens, click on **Create**, then at **Connection** specify a `name`, enter your `ds<number>.mlab.com` as address and `<port>` number as port, also at **Authentication** enter the datbase name (e.g. `inventor2revit `) and `<dbuser>` and `<dbpassword>`.
 
@@ -146,7 +139,19 @@ Other APIs:
 
 ### Tips & Tricks
 
-This sample uses .NET Core and works fine on both Windows and MacOS, see [this tutorial for MacOS](https://github.com/augustogoncalves/dotnetcoreheroku). **Important**: For Visual Code (Windows or MacOS) open only the `/web/` folder. 
+This sample uses .NET Core and works fine on both Windows and MacOS, see [this tutorial for MacOS](https://github.com/augustogoncalves/dotnetcoreheroku). **Important**: For Visual Code (Windows or MacOS) open only the `/web/` folder.
+
+> What connection string should I use for my MongoDB cluster?
+
+If you are using MongoDB version earlier than 3.4 (default version as this sample), use the sharded schema: `mongodb://<username>:<password>@cluster0-shard-00-00-u9dtd.mongodb.net:27017,cluster0-shard-00-01-u9dtd.mongodb.net:27017,cluster0-shard-00-02-u9dtd.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true`
+
+Otherwise go with the service schema which is much simpler: `mongodb+srv://<username>:<password>@cluster0-u9dtd.mongodb.net/test?retryWrites=true`
+
+See [here](https://docs.mongodb.com/manual/reference/connection-string/) for details on connection string schema.
+
+> I have set everything up right but am still unable to connect to MongoDB Atlas?
+
+Be sure to follow [this tutorial](https://docs.atlas.mongodb.com/security-whitelist/) to whitelist your server. Contact Forge Help if the problem persists.
 
 ### Troubleshooting
 
