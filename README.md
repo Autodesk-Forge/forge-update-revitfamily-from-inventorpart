@@ -41,7 +41,7 @@ Try it at [inventor2revit.herokuapp.com](http://inventor2revit.herokuapp.com/), 
 2. **Visual Studio**: Either Community (Windows) or Code (Windows, MacOS).
 3. **.NET Core** basic knowledge with C#
 4. **ngrok**: Routing tool, [download here](https://ngrok.com/)
-5. **MongoDB**: noSQL database, [learn more](https://www.mongodb.com/). Or use a online version via [mLab](https://mlab.com/) (this is used on this sample)
+5. **MongoDB**: noSQL database, [learn more](https://www.mongodb.com/). Or use a online version via [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) (this is used on this sample)
 6. **AWS Account**: S3 buckets are used to store temporary files
 7. **Inventor** 2019: required to compile changes into the plugin
 8. **Revit** 2019: required to compile changes into the plugin
@@ -70,7 +70,7 @@ Open the folder, at the bottom-right, select **Yes** and **Restore**. This resto
 
 [MongoDB](https://www.mongodb.com) is a no-SQL database based on "documents", which stores JSON-like data. For testing purpouses, you can either use local or live. For cloud environment, try [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or [Compose MongoDB](https://elements.heroku.com/addons/mongohq). With MongoDB Atlas you can set up an account for free and create clustered instances.
 
-There are several tools to view your database, [Robo 3T](https://robomongo.org/) (formerly Robomongo) is a free lightweight GUI that can be used. When it opens, click on **Create**, then at **Connection** specify a `name`, enter your `ds<number>.mlab.com` as address and `<port>` number as port, also at **Authentication** enter the datbase name (e.g. `inventor2revit `) and `<dbuser>` and `<dbpassword>`.
+There are several tools to view your database, [Robo 3T](https://robomongo.org/) (formerly Robomongo) is a free lightweight GUI that can be used. When it opens, follow instructions [here](https://www.datduh.com/blog/2017/7/26/how-to-connect-to-mongodb-atlas-using-robo-3t-robomongo) to connect to MongoDB Atlas.
 
 **AWS Account**
 
@@ -91,7 +91,7 @@ At the `.vscode\launch.json`, find the env vars and add your Forge Client ID, Se
     "FORGE_CLIENT_ID": "your id here",
     "FORGE_CLIENT_SECRET": "your secret here",
     "FORGE_CALLBACK_URL": "http://localhost:3000/api/forge/callback/oauth",
-    "OAUTH_DATABASE": "mongodb://<dbuser>:<dbpassword>@ds<number>.mlab.com:<port>/inventor2revit",
+    "OAUTH_DATABASE": "mongodb+srv://<username>:<password>@cluster0-u9dtd.mongodb.net/test?retryWrites=true",
     "FORGE_WEBHOOK_URL": "your ngrok address here: e.g. http://abcd1234.ngrok.io",
     "AWS_ACCESS_KEY": "your AWS access key here",
     "AWS_SECRET_KEY": "your AWS secret key here"
@@ -131,7 +131,7 @@ Other APIs:
 
 - [Hangfire](https://www.hangfire.io/) queueing library for .NET
 - [MongoDB for C#](https://docs.mongodb.com/ecosystem/drivers/csharp/) driver
-- [mLab](https://mlab.com/) Database-as-a-Service for MongoDB
+- [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) Database-as-a-Service for MongoDB
 
 ### Known Issues
 
