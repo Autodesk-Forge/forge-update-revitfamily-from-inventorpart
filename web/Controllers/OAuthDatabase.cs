@@ -50,7 +50,7 @@ namespace Inventor2Revit.Controllers
         {
             get
             {
-                if (_database == null) _database = Client.GetDatabase(OAuthDatabase.Split('/').Last());
+                if (_database == null) _database = Client.GetDatabase(OAuthDatabase.Split('/').Last().Split('?').First());
                 return _database;
             }
         }
