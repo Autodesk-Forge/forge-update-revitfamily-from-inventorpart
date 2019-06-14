@@ -31,7 +31,17 @@ Whatch the recording at [Youtube](https://www.youtube.com/watch?v=gj12qkCNNyM).
 
 ## Live version
 
-Try it at [inventor2revit.herokuapp.com](http://inventor2revit.herokuapp.com/), use the **Table_Chair.rvt** and both **Chair_Orientation.ipt** (with and without headrest) sample files at [this folder](https://github.com/autodesk-forge/design.automation-csharp-inventor2revit/tree/master/samplefiles)
+Try it at [inventor2revit.herokuapp.com](http://inventor2revit.herokuapp.com/). Sample files provided at [this folder](https://github.com/autodesk-forge/design.automation-csharp-inventor2revit/tree/master/samplefiles). 
+
+Instructions:
+
+1. Go to BIM 360 Document Manager, create a folder under `Project Files`.
+2. Using BIM 360, upload [Table_Chair.rvt](https://github.com/Autodesk-Forge/design.automation-csharp-inventor2revit/raw/master/samplefiles/Table_chair.rvt) and [Chair_Orientation.ipt](https://github.com/Autodesk-Forge/design.automation-csharp-inventor2revit/raw/master/samplefiles/Chair_Orientation.ipt) to the folder.
+3. Go to the [app live version](http://inventor2revit.herokuapp.com), sign in using your Autodesk credentials and enable the app within your BIM 360 Account (see **Enable my BIM 360 Account** steps at the app top-right).
+4. Expand the tree view and select the newly created folder, click on **Start monitoring this folder**.
+5. Back to BIM 360 Document Manager, upload this new version of the [Chair_Orientation.ipt](https://github.com/Autodesk-Forge/design.automation-csharp-inventor2revit/raw/master/samplefiles/Chair%20with%20headrest/Chair_Orientation.ipt) (with headrest).
+6. After the new IPT version is uploaded, the process will start (IPT to SAT, SAT into a new RFA and RFA replaced on the RVT), monitor at the [Hangfire queue dashboard](https://inventor2revit.herokuapp.com/hangfire).
+7. After the new version of the RVT is created, view it using BIM 360 Document Manager.
 
 # Setup
 
