@@ -1,4 +1,4 @@
-# design.automation-csharp-inventor2revit
+# Automatically updates Revit Family from Inventor Part
 
 ![Platforms](https://img.shields.io/badge/Web-Windows|MacOS-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET%20Core-2.1-blue.svg)
