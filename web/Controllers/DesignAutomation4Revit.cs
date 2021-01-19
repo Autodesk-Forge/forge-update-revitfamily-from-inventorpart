@@ -117,7 +117,7 @@ namespace Inventor2Revit.Controllers
                 foreach (KeyValuePair<string, string> x in newAppVersion.UploadParameters.FormData) request.AddParameter(x.Key, x.Value);
                 request.AddFile("file", packageZipPath);
                 request.AddHeader("Cache-Control", "no-cache");
-                await uploadClient.ExecuteTaskAsync(request);
+                await uploadClient.ExecuteAsync(request);
             }
         }
 
@@ -138,7 +138,7 @@ namespace Inventor2Revit.Controllers
             if (!existActivity)
             {
                 // create activity
-                string commandLine = string.Format(@"$(engine.path)\\revitcoreconsole.exe /i $(args[rvtFile].path) /al $(appbundles[{0}].path)", APPNAME);
+                string commandLine = string.Format(@"$(engine.path)\\revitcoreconsole.exe /i {0}$(args[rvtFile].path){0} /al {0}$(appbundles[{1}].path){0}", "\"", APPNAME);
                 Activity activitySpec = new Activity()
                 {
                     Id = ACTIVITY_NAME,
@@ -380,7 +380,7 @@ namespace Inventor2Revit.Controllers
                         { "onComplete", new XrefTreeArgument { Verb = Verb.Post, Url = callbackUrl } }
                     }
                 };
-                WorkItemStatus workItemStatus = await _designAutomation.CreateWorkItemsAsync(workItemSpec);
+                WorkItemStatus workItemStatus = await _designAutomation.CreateWorkItemAsync(workItemSpec);
             }
         }
     }
