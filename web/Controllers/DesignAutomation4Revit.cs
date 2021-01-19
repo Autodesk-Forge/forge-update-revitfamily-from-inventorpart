@@ -16,7 +16,6 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
-using Amazon.S3;
 using Autodesk.Forge;
 using Autodesk.Forge.Core;
 using Autodesk.Forge.DesignAutomation;
@@ -163,14 +162,23 @@ namespace Inventor2Revit.Controllers
 
         private async Task EnsureTemplateExists(string contentRootPath)
         {
-            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
-            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
-            var keys = await client.GetAllObjectKeysAsync(Utils.S3BucketName, null, null);
-            if (keys.Contains(RFA_TEMPLATE)) return;
+            ObjectsApi objects = new ObjectsApi();
+            dynamic token = await Credentials.Get2LeggedTokenAsync(new Scope[] { Scope.BucketCreate, Scope.DataWrite, Scope.DataRead });
+            objects.Configuration.AccessToken = token.access_token;
+            try
+            {
+                var objectDetails = objects.GetObjectDetails(Utils.BucketName, RFA_TEMPLATE);
+            }
+            catch(Exception ex)
+            {
+                // not there yet, let's create
+                string rftPath = Path.Combine(contentRootPath, RFA_TEMPLATE);
+                using(StreamReader streamReader = new StreamReader(rftPath))
+                {
+                    await objects.UploadObjectAsync(Utils.BucketName, RFA_TEMPLATE, (int)streamReader.BaseStream.Length, streamReader.BaseStream);
+                }
+            }
 
-            // not there yet, let's create
-            string rftPath = Path.Combine(contentRootPath, RFA_TEMPLATE);
-            await client.UploadObjectFromFilePathAsync(Utils.S3BucketName, RFA_TEMPLATE, rftPath, null);
         }
 
         private async Task<XrefTreeArgument> BuildBIM360DownloadURL(string userAccessToken, string projectId, string versionId)
@@ -261,46 +269,19 @@ namespace Inventor2Revit.Controllers
             };
         }
 
-        private async Task<JObject> BuildS3UploadURL(string resultFilename)
+        private async Task<XrefTreeArgument> BuildDownloadURL(string fileName)
         {
-            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
-            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
-
-            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
-                await client.EnsureBucketExistsAsync(Utils.S3BucketName);
-
-            Dictionary<string, object> props = new Dictionary<string, object>();
-            props.Add("Verb", "PUT");
-            Uri uploadToS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, resultFilename, DateTime.Now.AddMinutes(10), props));
-
-            return new JObject
-            {
-                new JProperty("verb", "PUT"),
-                new JProperty("url", uploadToS3.ToString())
-            };
-        }
-
-        private async Task<XrefTreeArgument> BuildS3DownloadURL(string fileName)
-        {
-            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
-            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
-
-            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
-            {
-                throw new Exception("Bucket does not exist");
-            }
-
-            var keys = await client.GetAllObjectKeysAsync(Utils.S3BucketName, null, null);
-            if (!keys.Contains(fileName))
-            {
-                throw new Exception("Object does not exist in bucket");
-            }
-
-            Uri downloadFromS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, fileName, DateTime.Now.AddMinutes(5), null));
+            ObjectsApi objects = new ObjectsApi();
+            dynamic token = await  Credentials.Get2LeggedTokenAsync(new Scope[] { Scope.DataRead, Scope.DataWrite });
+            objects.Configuration.AccessToken = token.access_token;
+            //Throw an exception if bucket or object does not exist
+            dynamic objectDetails = await objects.GetObjectDetailsAsync(Utils.BucketName, fileName);
+            
+            dynamic signedUrl = await objects.CreateSignedResourceAsyncWithHttpInfo(Utils.BucketName, fileName, new PostBucketsSigned(5), "readwrite");
 
             return new XrefTreeArgument()
             {
-                Url = downloadFromS3.ToString(),
+                Url = (string)(signedUrl.Data.signedUrl),
                 Verb = Verb.Get
             };
         }
@@ -374,8 +355,8 @@ namespace Inventor2Revit.Controllers
                     Arguments = new Dictionary<string, IArgument>()
                     {
                         { "rvtFile", await BuildBIM360DownloadURL(credentials.TokenInternal, projectId, fileInFolder) },
-                        { "inputGeometry", await BuildS3DownloadURL(satFileName) },
-                        { "familyTemplate", await BuildS3DownloadURL(RFA_TEMPLATE) },
+                        { "inputGeometry", await BuildDownloadURL(satFileName) },
+                        { "familyTemplate", await BuildDownloadURL(RFA_TEMPLATE) },
                         { "result",  await BuildBIM360UploadURL(credentials.TokenInternal, info)  },
                         { "onComplete", new XrefTreeArgument { Verb = Verb.Post, Url = callbackUrl } }
                     }
