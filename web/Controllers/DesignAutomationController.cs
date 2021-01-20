@@ -64,11 +64,6 @@ namespace Inventor2Revit.Controllers
 
         public async Task StartRevit(string userId, string projectId, string versionId, string contentRootPath)
         {
-            /* string resultFilename = versionId + ".sat";
-
-            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName)) return;
-            Uri downloadFromS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, resultFilename, DateTime.Now.AddMinutes(10), null)); */
-
             DesignAutomation4Revit daRevit = new DesignAutomation4Revit();
             await daRevit.StartUploadFamily(userId, projectId, versionId, contentRootPath);
         }
