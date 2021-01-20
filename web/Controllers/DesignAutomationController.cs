@@ -16,7 +16,6 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
-using Amazon.S3;
 using Autodesk.Forge;
 using Autodesk.Forge.Model;
 using Hangfire;
@@ -30,8 +29,8 @@ namespace Inventor2Revit.Controllers
 {
     public class DesignAutomationController : ControllerBase
     {
-        private IHostingEnvironment _env;
-        public DesignAutomationController(IHostingEnvironment env)
+        private IWebHostEnvironment _env;
+        public DesignAutomationController(IWebHostEnvironment env)
         {
             _env = env;
         }
@@ -65,15 +64,6 @@ namespace Inventor2Revit.Controllers
 
         public async Task StartRevit(string userId, string projectId, string versionId, string contentRootPath)
         {
-            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
-            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
-
-            string resultFilename = versionId + ".sat";
-
-            // create AWS Bucket
-            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName)) return;
-            Uri downloadFromS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, resultFilename, DateTime.Now.AddMinutes(10), null));
-
             DesignAutomation4Revit daRevit = new DesignAutomation4Revit();
             await daRevit.StartUploadFamily(userId, projectId, versionId, contentRootPath);
         }

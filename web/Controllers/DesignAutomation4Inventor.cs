@@ -16,7 +16,6 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
-using Amazon.S3;
 using Autodesk.Forge;
 using Autodesk.Forge.Core;
 using Autodesk.Forge.DesignAutomation;
@@ -116,7 +115,7 @@ namespace Inventor2Revit.Controllers
                 foreach (KeyValuePair<string, string> x in newAppVersion.UploadParameters.FormData) request.AddParameter(x.Key, x.Value);
                 request.AddFile("file", packageZipPath);
                 request.AddHeader("Cache-Control", "no-cache");
-                await uploadClient.ExecuteTaskAsync(request);
+                await uploadClient.ExecuteAsync(request);
             }
         }
 
@@ -137,7 +136,7 @@ namespace Inventor2Revit.Controllers
             if (!existActivity)
             {
                 // create activity
-                string commandLine = string.Format(@"$(engine.path)\\InventorCoreConsole.exe /i $(args[InventorDoc].path) /al $(appbundles[{0}].path)", APPNAME);
+                string commandLine = string.Format(@"$(engine.path)\\InventorCoreConsole.exe /i {0}$(args[InventorDoc].path){0} /al {0}$(appbundles[{1}].path){0}", "\"", APPNAME);
                 Activity activitySpec = new Activity()
                 {
                     Id = ACTIVITY_NAME,
@@ -184,19 +183,22 @@ namespace Inventor2Revit.Controllers
 
         private async Task<XrefTreeArgument> BuildUploadURL(string resultFilename)
         {
-            var awsCredentials = new Amazon.Runtime.BasicAWSCredentials(Credentials.GetAppSetting("AWS_ACCESS_KEY"), Credentials.GetAppSetting("AWS_SECRET_KEY"));
-            IAmazonS3 client = new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.USWest2);
+            BucketsApi buckets = new BucketsApi();
+            dynamic token = await Credentials.Get2LeggedTokenAsync(new Scope[] { Scope.BucketCreate, Scope.DataWrite });
+            buckets.Configuration.AccessToken = token.access_token;
+            PostBucketsPayload bucketPayload = new PostBucketsPayload(Utils.BucketName, null, PostBucketsPayload.PolicyKeyEnum.Transient);
+            try
+            {
+                await buckets.CreateBucketAsync(bucketPayload, "US");
+            }
+            catch { }
 
-            if (!await client.DoesS3BucketExistAsync(Utils.S3BucketName))
-                await client.EnsureBucketExistsAsync(Utils.S3BucketName);
-
-            Dictionary<string, object> props = new Dictionary<string, object>();
-            props.Add("Verb", "PUT");
-            Uri uploadToS3 = new Uri(client.GeneratePreSignedURL(Utils.S3BucketName, resultFilename, DateTime.Now.AddMinutes(10), props));
+            ObjectsApi objects = new ObjectsApi();
+            dynamic signedUrl = await objects.CreateSignedResourceAsyncWithHttpInfo(Utils.BucketName, resultFilename, new PostBucketsSigned(5), "readwrite");
 
             return new XrefTreeArgument()
             {
-                Url = uploadToS3.ToString(),
+                Url = (string)(signedUrl.Data.signedUrl),
                 Verb = Verb.Put
             };
         }
@@ -224,7 +226,7 @@ namespace Inventor2Revit.Controllers
                     { "onComplete", new XrefTreeArgument { Verb = Verb.Post, Url = callbackUrl } }
                 }
             };
-            WorkItemStatus workItemStatus = await _designAutomation.CreateWorkItemsAsync(workItemSpec);
+            WorkItemStatus workItemStatus = await _designAutomation.CreateWorkItemAsync(workItemSpec);
         }
     }
 }

@@ -16,7 +16,6 @@
 // UNINTERRUPTED OR ERROR FREE.
 /////////////////////////////////////////////////////////////////////
 
-using Amazon.S3;
 using Autodesk.Forge;
 using Autodesk.Forge.DesignAutomation.v3;
 using Autodesk.Forge.Model;
@@ -45,7 +44,7 @@ namespace Inventor2Revit.Controllers
             }
         }
 
-        public static string S3BucketName
+        public static string BucketName
         {
             get
             {
